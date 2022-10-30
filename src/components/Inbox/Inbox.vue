@@ -1,12 +1,23 @@
 <template>
+  <button
+    :disabled="selectedView === 'inbox'"
+    @click="selectView('inbox')"
+  >Inbox</button>
+  <button
+    :disabled="selectedView === 'archived'"
+    @click="selectView('archived')"
+  >Archived</button>
+
+  <BulkActionBar :emails="emailsFiltered" />
+
   <table class="mail-table">
     <tbody>
-      <tr v-for="email in unarchivedEmails" :key="email.id" :class="['clickable', email.read ? 'read' : '']">
+      <tr v-for="email in emailsFiltered" :key="email.id" :class="['clickable', email.read ? 'read' : '']">
         <td>
           <input 
             type="checkbox"
             @click="emailSelection.toggle(email)"
-            :selected="emailSelection.emails.has(email)"
+            :checked="emailSelection.emails.has(email)"
           />
         </td>
         <td @click="openEmail(email)">{{ email.from }}</td>
@@ -25,6 +36,7 @@
 </template>
 
 <script>
+import BulkActionBar from '../BulkActionBar'
 import MailView from '../MailView'
 import Modal from '../Modal'
 
@@ -36,6 +48,7 @@ import useEmailSelection from '@/composables/use-email-selection'
 
 export default {
   components: {
+    BulkActionBar,
     MailView,
     Modal,
   },
@@ -46,6 +59,7 @@ export default {
       emails: ref([]),
       format,
       openedEmail: ref(null),
+      selectedView: ref('inbox'),
     }
   },
 
@@ -57,11 +71,15 @@ export default {
     hasOpenedEmail() {
       return !!this.openedEmail
     },
-    sortedEmails() {
+    emailsSorted() {
       return this.emails.sort((email1, email2) => email1.sentAt < email2.sentAt ? 1 : -1)
     },
-    unarchivedEmails() {
-      return this.sortedEmails.filter(email => !email.archived)
+    emailsFiltered() {
+      if(this.selectedView === 'inbox') {
+        return this.emailsSorted.filter(email => !email.archived)
+      } else {
+        return this.emailsSorted.filter(email => email.archived)
+      }
     }
   },
 
@@ -82,10 +100,14 @@ export default {
       if (closeModal) this.openedEmail = null
 
       if (changeIndex) {
-        const newEmaiIndex = this.unarchivedEmails.indexOf(email) + changeIndex
-        const newOpenedEmail = this.unarchivedEmails[newEmaiIndex]
+        const newEmaiIndex = this.emailsFiltered.indexOf(email) + changeIndex
+        const newOpenedEmail = this.emailsFiltered[newEmaiIndex]
         this.openedEmail = newOpenedEmail
       }
+    },
+    async getEmails() {
+      const { data: emails } = await axios.get('http://localhost:3000/emails')
+      this.emails = emails
     },
     markAsRead(email) {
       email.read = true
@@ -98,9 +120,9 @@ export default {
 
       this.openedEmail = email
     },
-    async getEmails() {
-      const { data: emails } = await axios.get('http://localhost:3000/emails')
-      this.emails = emails
+    selectView(newView) {
+      this.selectedView = newView
+      this.emailSelection.clear()
     },
     updateEmail(email) {
       axios.put(`http://localhost:3000/emails/${email.id}`, email)

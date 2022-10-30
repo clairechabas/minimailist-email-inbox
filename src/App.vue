@@ -1,7 +1,6 @@
 <template>
   <h1>VMail Inbox</h1>
 
-  <h1>{{ emailSelection.emails.size }}</h1>
   <Suspense>
     <template #default>
       <Inbox />
@@ -20,12 +19,6 @@ export default {
   components: {
     Inbox,
   },
-
-  setup() {
-    return {
-      emailSelection: useEmailSelection()
-    }
-  }
 }
 </script>
 

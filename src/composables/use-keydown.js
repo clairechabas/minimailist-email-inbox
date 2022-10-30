@@ -2,8 +2,6 @@ import { onBeforeUnmount } from 'vue';
 
 let useKeydown = (events) => {
   let onKeyDown = (currentEvent) => {
-    console.log(currentEvent.key);
-
     let eventFound = Array.isArray(events)
       ? events.find((event) => currentEvent.key === event.key)
       : events;
