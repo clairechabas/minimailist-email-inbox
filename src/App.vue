@@ -1,6 +1,6 @@
 <template>
-  <h1>Minimailist</h1>
-  <h2>The mail inbox you actually love.</h2>
+  <h1>📬 Minimailist</h1>
+  <h3>The email client you actually love.</h3>
 
   <Suspense>
     <template #default>

@@ -4,7 +4,7 @@ This is an attempt to build my own mail inbox client to handle my Gmail emails. 
 
 If you find current mail clients boring too, don't hesitate to reach out 🤙
 
-### Project setup
+## Project setup
 This project is using yarn.
 
 Install
