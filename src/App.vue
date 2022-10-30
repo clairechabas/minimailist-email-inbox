@@ -1,5 +1,6 @@
 <template>
-  <h1>VMail Inbox</h1>
+  <h1>Minimailist</h1>
+  <h2>The mail inbox you actually love.</h2>
 
   <Suspense>
     <template #default>
@@ -13,7 +14,6 @@
 
 <script>
 import Inbox from '@/components/Inbox'
-import useEmailSelection from '@/composables/use-email-selection'
 
 export default {
   components: {
