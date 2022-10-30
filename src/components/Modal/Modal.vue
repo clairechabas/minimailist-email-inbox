@@ -15,7 +15,7 @@ export default {
     useKeydown([
       { key: 'Escape', action: () => emit('close')},
       { key: 'Enter', action: () => console.log('We can handle several key events with a single instance of this composable') },
-  ])
+    ])
 
     return {
       emit,

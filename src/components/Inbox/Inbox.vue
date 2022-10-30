@@ -1,13 +1,16 @@
 <template>
   <table class="mail-table">
     <tbody>
-      <tr v-for="email in unarchivedEmails" :key="email.id" :class="['clickable', email.read ? 'read' : '']"
-        @click="openEmail(email)">
+      <tr v-for="email in unarchivedEmails" :key="email.id" :class="['clickable', email.read ? 'read' : '']">
         <td>
-          <input type="checkbox">
+          <input 
+            type="checkbox"
+            @click="emailSelection.toggle(email)"
+            :selected="emailSelection.emails.has(email)"
+          />
         </td>
-        <td>{{ email.from }}</td>
-        <td>
+        <td @click="openEmail(email)">{{ email.from }}</td>
+        <td @click="openEmail(email)">
           <p><span class="subject">{{ email.subject }}</span> - {{ email.body }}</p>
         </td>
         <td class="date">{{ format(new Date(email.sentAt), 'MMM do yyyy') }}</td>
@@ -17,7 +20,7 @@
   </table>
 
   <Modal v-if="hasOpenedEmail" @close="closeModal">
-    <MailView :email="openedEmail" />
+    <MailView :email="openedEmail" @email-change="emailChange" />
   </Modal>
 </template>
 
@@ -29,6 +32,7 @@ import { format } from 'date-fns'
 import axios from 'axios'
 
 import { ref } from 'vue'
+import useEmailSelection from '@/composables/use-email-selection'
 
 export default {
   components: {
@@ -38,6 +42,7 @@ export default {
 
   async setup() {
     return {
+      emailSelection: useEmailSelection(),
       emails: ref([]),
       format,
       openedEmail: ref(null),
@@ -68,12 +73,28 @@ export default {
     closeModal() {
       this.openedEmail = null
     },
+    emailChange({ changeIndex, closeModal, save, toggleArchive, toggleRead }) {
+      let email = this.openedEmail
+
+      if (toggleArchive) email.archived = !email.archived
+      if (toggleRead) email.read = !email.read
+      if (save) this.updateEmail(email)
+      if (closeModal) this.openedEmail = null
+
+      if (changeIndex) {
+        const newEmaiIndex = this.unarchivedEmails.indexOf(email) + changeIndex
+        const newOpenedEmail = this.unarchivedEmails[newEmaiIndex]
+        this.openedEmail = newOpenedEmail
+      }
+    },
     markAsRead(email) {
       email.read = true
       this.updateEmail(email)
     },
     openEmail(email) {
-      this.markAsRead(email)
+      if(email) {
+        this.markAsRead(email)
+      }
 
       this.openedEmail = email
     },
@@ -81,8 +102,8 @@ export default {
       const { data: emails } = await axios.get('http://localhost:3000/emails')
       this.emails = emails
     },
-    async updateEmail(email) {
-      await axios.put(`http://localhost:3000/emails/${email.id}`, email)
+    updateEmail(email) {
+      axios.put(`http://localhost:3000/emails/${email.id}`, email)
     }
   }
 }
